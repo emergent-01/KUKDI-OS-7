@@ -263,6 +263,46 @@ frontend:
         -working: true
         -agent: "testing"
         -comment: "✅ REGRESSION TEST PASSED. Verified People mock flow still works correctly with shared MockModal: (1) Expanded person detail (person-expand-{id}) shows practice log. (2) Clicked mock-log-open-{id} opens mock-modal with title 'A mock with Devina'. (3) Selected Conflict competency chip - chip highlights correctly. (4) Filled mock-feedback 'Excellent conflict resolution practice'. (5) Clicked mock-save - modal closes successfully. (6) Mock appears in person's practice log after save. (7) No behavior change from original People implementation - all testids and functionality preserved. Screenshots confirm modal works identically across all three pages (People, DreamOffer, Stories). No console errors."
+  - task: "Starter content seed — 4 STAR story drafts + 2 tentative events (data only)"
+    implemented: true
+    working: true
+    file: "backend/seed_starter.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        -working: "NA"
+        -agent: "main"
+        -comment: "Corrected seed_starter.py action/situation strings to the user's verbatim warm in-voice invitations (removed [bracketed] dev-notes). Ran script into fresh DB: inserted 4 stories (status=draft, STAR fields + themes + tags) and 2 tentative events (deadline mid-Sep, placement early-Nov, done=false). Idempotent by title (re-run added 0). Existing 14 companies / 12 people untouched. VERIFY: GET /api/stories returns 4 drafts with populated situation/task/action/result and NO square brackets in action text; GET /api/calendar/events returns the 2 tentative events; no _id leaks anywhere."
+        -working: true
+        -agent: "testing"
+        -comment: "✅ ALL 43 BACKEND TESTS PASSED. GET /api/stories returns EXACTLY 4 drafts with correct titles, non-empty STAR fields, themes+tags populated, and NO square brackets in action text. GET /api/calendar returns the 2 tentative events (deadline mid-Sep done=false, placement early-Nov done=false). GET /api/dream/nudges returns 200 with {nudge, more} (nudge non-null, more list of 2 — real coverage-gap nudge from seeded stories). Data intact: companies=14, people=12, no mutations. No _id leaks in any response."
+        -working: true
+        -agent: "testing"
+        -comment: "✅ ALL 43 BACKEND TESTS PASSED. Verified: (1) GET /api/stories returns EXACTLY 4 story drafts with correct titles ('Doubling the Toastmasters budget', 'Winning HACKOWASP with a contactless-shopping prototype', 'Handling conflict in the OWASP chapter', 'Teaching on mobile-only during COVID'). Each story has status=draft, non-empty situation/task/action/result fields, populated themes (2 each) and tags (2 each), and CRITICALLY NO square brackets '[' or ']' in action text. (2) GET /api/calendar returns 2 tentative events: 'Company registrations — expected mid-September (tentative)' (type=deadline, done=false) and 'Interviews — expected around November (tentative)' (type=placement, done=false). (3) GET /api/dream/nudges returns HTTP 200 with correct {nudge, more} structure - nudge is non-null dict, more is list with 2 items. (4) Data integrity confirmed: GET /api/dream/overview shows 14 companies, GET /api/people shows 12 people - no mutations. (5) NO _id leaks detected in ANY response. Starter content seed is production-ready."
+  - task: "App identity rename to North + scoped navigation"
+    implemented: true
+    working: "NA"
+    file: "frontend/src/components/Layout.jsx, frontend/public/index.html"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        -working: "NA"
+        -agent: "main"
+        -comment: "Centralized APP_NAME='North' / APP_TAGLINE='Your Placement Companion' in Layout.jsx (originals noted in comment for revert). Wordmark + tagline render these; tab <title>=North. Nav scoped to Home, Dream Offer, People, Stories, Calendar + Talk to Kukdi + Intake ('Set up your world'). Added testids nav-stories, nav-calendar, nav-intake (nav-home/nav-dream/nav-people/nav-talk preserved). Memory/Knowledge/Reflection/More removed from nav but routes/pages remain reachable by direct URL. ai_engine.py/persona + design system unchanged. VERIFY: desktop rail + mobile bottom nav show ONLY the scoped items; a hidden page (e.g. /reflection) still resolves by direct URL."
+  - task: "Dream Offer 'A GENTLE NUDGE' empty/loading state"
+    implemented: true
+    working: "NA"
+    file: "frontend/src/pages/DreamOffer.jsx, frontend/src/pages/Home.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        -working: "NA"
+        -agent: "main"
+        -comment: "Fetch has .catch()+.finally(setNudgeLoading(false)) so it can never hang on the loading line; whole section (label included) gated on {(nudgeLoading || nudge)} so it renders NOTHING once resolved with no nudge or on error. Home doorway gated on {nudge &&} with .catch(). With current data GET /api/dream/nudges returns {nudge:null, more:[]} so the section must be HIDDEN (no stuck 'Kukdi is noticing…'). VERIFY on /dream-offer: no persistent loading line; section hidden when empty; renders normally when a nudge exists."
+
 
 metadata:
   created_by: "main_agent"
@@ -271,7 +311,9 @@ metadata:
   run_ui: false
 
 test_plan:
-  current_focus: []
+  current_focus:
+    - "App identity rename to North + scoped navigation"
+    - "Dream Offer 'A GENTLE NUDGE' empty/loading state"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
@@ -284,4 +326,7 @@ agent_communication:
     -agent: "testing"
     -message: "✅ FRONTEND TESTING COMPLETE - ALL 5 UI FLOWS PASSED + SMOKE TESTS PASSED. Comprehensive testing of prep-circle UI flows completed successfully: (A) People PREP CIRCLE grouping - confirmed members (Devina, Rasukh, Shubhi) correctly grouped, 'EVERYONE ELSE' section separates non-circle members, add/remove toggle works and persists after reload, no numeric badges. (B) Strengths editing - modal opens, chips selectable with sage highlighting, note field works, all data displays in person row and persists after reload. (C) Mock session logging - expand person detail works, modal opens with all fields (date, competencies, feedback, to_act_on), mocks display as prose newest-first, unacted items show as muted whisper, mark-acted button appears on hover and successfully marks items as 'Acted on'. (D) Dream Offer nudge - displays ONE warm offer-phrased line with calm italic styling (no loud card/banner), see-more reveals additional content and collapses correctly, LLM-generated nudge is grounded with real refs. (E) Home doorway - single quiet line appears when nudge exists, navigates to /dream-offer on click. (F) Smoke tests - all pages (/memory, /calendar, /knowledge, /reflection, /stories, /more, /talk, /intake) load without crashes or console errors. NO CRITICAL ISSUES FOUND. Prep-circle feature is production-ready."
     -agent: "testing"
-    -message: "✅ STRENGTH MATCHMAKING TESTING COMPLETE - ALL 3 NEW FEATURES PASSED + SMOKE TESTS PASSED. Comprehensive UI testing completed: (A) Dream Offer matchmaking - nudge loads correctly with warm offer-phrased line, best-fit peer (Rasukh) visible in collapsed view with hover one-tap action, clicking one-tap opens MockModal PRE-FILLED with Leadership chip selected, see-more reveals alternate peer (Devina) with own one-tap action, collapsed view correctly hides alternates. (B) Stories coverage matchmaking - Leadership coverage shows Rasukh as suggested peer with one-tap action opening pre-filled modal, Influence coverage shows Devina, see-more reveals alternate peer (Devina for Leadership) with own one-tap, collapsed state correctly hides alternates. (C) Shared MockModal reuse - People mock flow regression passed, modal works identically across all three pages (People/DreamOffer/Stories), all testids preserved, competency pre-selection works correctly, no behavior changes to existing People flow. (D) Smoke tests - all 8 pages (Home, Memory, Calendar, Knowledge, Reflection, More, Talk, Intake) load without errors. NO CONSOLE ERRORS detected across all tests. Screenshots confirm calm editorial styling, proper chip highlighting, and correct collapsed/expanded states. All strength matchmaking features are production-ready."
+    -message: "✅ STRENGTH MATCHMAKING TESTING COMPLETE - ALL 3 NEW FEATURES PASSED + SMOKE TESTS PASSED. Comprehensive UI testing completed: (A) Dream Offer matchmaking - nudge loads correctly with warm offer-phrased line, best-fit peer (Rasukh) visible in collapsed view with hover one-tap action, clicking one-tap opens MockModal PRE-FILLED with Leadership chip selected, see-more reveals alternate peer (Devina) with own one-tap action, collapsed view correctly hides alternates. (B) Stories coverage matchmaking - Leadership coverage shows Rasukh as suggested peer with one-tap action opening pre-filled modal, Influence coverage shows Devina, see-more reveals alternate peer (Devina for Leadership) with own one-tap, collapsed state correctly hides alternates. (C) Shared MockModal reuse - People mock flow regression passed, modal works identically across all three pages (People/DreamOffer/Stories), all testids preserved, competency pre-selection works correctly, no behavior changes to existing People flow. (D) Smoke tests - all 8 pages (Home, Memory, Calendar, Knowledge, Reflection, More, Talk, Intake) load without errors. NO CONSOLE ERRORS detected across all tests. Screenshots confirm calm editorial styling, proper chip highlighting, and correct collapsed/expanded states. All strength matchmaking features are production-ready."    -agent: "main"
+    -message: "NEW PASS (additive/corrective). BACKEND TEST SCOPE ONLY (no backend code changed, data + config only): (1) GET /api/stories — expect exactly 4 story drafts (Doubling the Toastmasters budget; Winning HACKOWASP with a contactless-shopping prototype; Handling conflict in the OWASP chapter; Teaching on mobile-only during COVID). Each must have non-empty situation/task/action/result, status=draft, themes+tags populated, and action text must NOT contain any square brackets '[' or ']'. (2) GET /api/calendar/events — expect the 2 tentative events present: 'Company registrations — expected mid-September (tentative)' (type=deadline, done=false) and 'Interviews — expected around November (tentative)' (type=placement, done=false). (3) GET /api/dream/nudges — must return HTTP 200 with a clean JSON body shaped {nudge, more} (nudge may be null when there is nothing to surface; more is a list). (4) Confirm existing data intact: GET companies count = 14, people count = 12 (do NOT mutate). (5) No _id leaks in any response. Do NOT re-run provisioning; do NOT create/delete companies or people. Frontend (identity rename + nav scoping + nudge empty-state) will be verified separately with user permission."
+    -agent: "testing"
+    -message: "✅ BACKEND VERIFICATION COMPLETE - ALL 43 TESTS PASSED. Scoped backend-only verification completed successfully: (1) GET /api/stories returns EXACTLY 4 story drafts with correct titles ('Doubling the Toastmasters budget', 'Winning HACKOWASP with a contactless-shopping prototype', 'Handling conflict in the OWASP chapter', 'Teaching on mobile-only during COVID'). Each story verified: status=draft ✓, non-empty STAR fields (situation/task/action/result) ✓, themes populated (2 each) ✓, tags populated (2 each) ✓, and CRITICALLY NO square brackets '[' or ']' in action text ✓. (2) GET /api/calendar returns 2 tentative events with exact titles: 'Company registrations — expected mid-September (tentative)' (type=deadline, done=false) ✓ and 'Interviews — expected around November (tentative)' (type=placement, done=false) ✓. (3) GET /api/dream/nudges returns HTTP 200 ✓ with correct {nudge, more} structure ✓ - nudge is non-null dict (valid), more is list with 2 items ✓. (4) Data integrity confirmed: companies count = 14 (via /api/dream/overview) ✓, people count = 12 ✓ - NO mutations detected. (5) NO _id leaks detected in ANY response ✓. NO backend code was changed - only data seeding verified. Backend starter content seed is production-ready. Frontend tasks ('App identity rename to North + scoped navigation' and 'Dream Offer A GENTLE NUDGE empty/loading state') NOT tested per instructions - awaiting user permission for frontend verification."

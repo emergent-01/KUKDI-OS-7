@@ -1,13 +1,31 @@
 import { NavLink, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Home, Target, Users, MoreHorizontal, MessageCircle } from "lucide-react";
+import { Home, Target, Users, BookOpen, CalendarDays, MessageCircle, Sparkles } from "lucide-react";
 
+// Visible app identity — centralized here for easy revert.
+// Originals were: APP_NAME = "Kukdi", APP_TAGLINE = "A Personal OS".
+// (The companion may still refer to itself as "Kukdi" internally — see ai_engine.py.)
+const APP_NAME = "North";
+const APP_TAGLINE = "Your Placement Companion";
+
+// Primary navigation — scoped to the calm core. Shown in the desktop rail and
+// the mobile bottom bar.
 const NAV = [
   { to: "/", label: "Home", icon: Home, testId: "nav-home", end: true },
   { to: "/dream-offer", label: "Dream Offer", icon: Target, testId: "nav-dream" },
   { to: "/people", label: "People", icon: Users, testId: "nav-people" },
-  { to: "/more", label: "More", icon: MoreHorizontal, testId: "nav-more" },
+  { to: "/stories", label: "Stories", icon: BookOpen, testId: "nav-stories" },
+  { to: "/calendar", label: "Calendar", icon: CalendarDays, testId: "nav-calendar" },
 ];
+
+// Secondary affordances (foot of the rail, and the mobile bar).
+const TALK = { to: "/talk", label: "Talk to Kukdi", icon: MessageCircle, testId: "nav-talk" };
+const INTAKE = { to: "/intake", label: "Set up your world", icon: Sparkles, testId: "nav-intake" };
+
+// Hidden from nav (intentionally) but still reachable by direct URL — their
+// routes, pages, helpers and backend all remain untouched. To restore, add
+// back to NAV: Memory (/memory), Knowledge (/knowledge), Reflection
+// (/reflection), More (/more).
 
 function RailLink({ to, label, end, testId }) {
   return (
@@ -41,9 +59,9 @@ export default function Layout({ children }) {
       <aside className="hidden md:flex fixed top-0 left-0 h-screen w-[260px] flex-col justify-between px-10 py-12 bg-[#F7F6F2]">
         <div>
           <div className="mb-16">
-            <div className="font-editorial text-3xl leading-none text-[#2C2D2B]">Kukdi</div>
-            <div className="text-xs tracking-[0.15em] uppercase text-[#8A8F8C] mt-2">
-              A Personal OS
+            <div className="font-editorial text-3xl leading-none text-[#2C2D2B]">{APP_NAME}</div>
+            <div className="text-xs tracking-[0.18em] uppercase text-[#8A8F8C] mt-2">
+              {APP_TAGLINE}
             </div>
           </div>
           <nav className="space-y-1 pl-4" data-testid="desktop-nav">
@@ -54,10 +72,16 @@ export default function Layout({ children }) {
         </div>
 
         <div className="pl-4">
-          <NavLink to="/talk" data-testid="nav-talk" className="group flex items-center gap-2.5">
+          <NavLink to={TALK.to} data-testid={TALK.testId} className="group flex items-center gap-2.5">
             <MessageCircle size={16} strokeWidth={1.5} className="text-[#9DB0A3]" />
             <span className="text-sm text-[#8A8F8C] group-hover:text-[#2C2D2B] transition-colors">
-              Talk to Kukdi
+              {TALK.label}
+            </span>
+          </NavLink>
+          <NavLink to={INTAKE.to} data-testid={INTAKE.testId} className="group flex items-center gap-2.5 mt-3">
+            <Sparkles size={16} strokeWidth={1.5} className="text-[#9DB0A3]" />
+            <span className="text-sm text-[#8A8F8C] group-hover:text-[#2C2D2B] transition-colors">
+              {INTAKE.label}
             </span>
           </NavLink>
           <div className="mt-6 text-xs text-[#8A8F8C] leading-relaxed">
@@ -86,7 +110,7 @@ export default function Layout({ children }) {
         className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#EFECE7] border-t border-[#E2DFD8] flex justify-around items-center py-3 px-2"
         data-testid="mobile-nav"
       >
-        {NAV.map((n) => {
+        {[...NAV, TALK, INTAKE].map((n) => {
           const Icon = n.icon;
           const active =
             n.end ? location.pathname === "/" : location.pathname.startsWith(n.to);
