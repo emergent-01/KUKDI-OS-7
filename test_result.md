@@ -282,38 +282,48 @@ frontend:
         -comment: "✅ ALL 43 BACKEND TESTS PASSED. Verified: (1) GET /api/stories returns EXACTLY 4 story drafts with correct titles ('Doubling the Toastmasters budget', 'Winning HACKOWASP with a contactless-shopping prototype', 'Handling conflict in the OWASP chapter', 'Teaching on mobile-only during COVID'). Each story has status=draft, non-empty situation/task/action/result fields, populated themes (2 each) and tags (2 each), and CRITICALLY NO square brackets '[' or ']' in action text. (2) GET /api/calendar returns 2 tentative events: 'Company registrations — expected mid-September (tentative)' (type=deadline, done=false) and 'Interviews — expected around November (tentative)' (type=placement, done=false). (3) GET /api/dream/nudges returns HTTP 200 with correct {nudge, more} structure - nudge is non-null dict, more is list with 2 items. (4) Data integrity confirmed: GET /api/dream/overview shows 14 companies, GET /api/people shows 12 people - no mutations. (5) NO _id leaks detected in ANY response. Starter content seed is production-ready."
   - task: "App identity rename to North + scoped navigation"
     implemented: true
-    working: "NA"
+    working: true
     file: "frontend/src/components/Layout.jsx, frontend/public/index.html"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         -working: "NA"
         -agent: "main"
         -comment: "Centralized APP_NAME='North' / APP_TAGLINE='Your Placement Companion' in Layout.jsx (originals noted in comment for revert). Wordmark + tagline render these; tab <title>=North. Nav scoped to Home, Dream Offer, People, Stories, Calendar + Talk to Kukdi + Intake ('Set up your world'). Added testids nav-stories, nav-calendar, nav-intake (nav-home/nav-dream/nav-people/nav-talk preserved). Memory/Knowledge/Reflection/More removed from nav but routes/pages remain reachable by direct URL. ai_engine.py/persona + design system unchanged. VERIFY: desktop rail + mobile bottom nav show ONLY the scoped items; a hidden page (e.g. /reflection) still resolves by direct URL."
+        -working: true
+        -agent: "testing"
+        -comment: "✅ PASSED. Tab title 'North'; header wordmark 'North' + tagline 'YOUR PLACEMENT COMPANION'. Desktop rail shows exactly the 5 primary items + 'Talk to Kukdi' (nav-talk) + 'Set up your world' (nav-intake); Memory/Knowledge/Reflection/More correctly absent. Mobile bottom nav shows all 7 scoped items via -mobile testids; hidden items absent. Direct URLs /reflection, /memory, /knowledge all load without crashing. Nav clicks route correctly. Calm editorial design preserved. No console errors."
+        -working: true
+        -agent: "testing"
+        -comment: "✅ ALL TESTS PASSED. Comprehensive UI verification completed: (1) APP IDENTITY - Browser tab title is 'North' ✓, wordmark reads 'North' ✓, tagline displays as 'YOUR PLACEMENT COMPANION' (uppercase via CSS) ✓. (2) DESKTOP NAVIGATION - All 5 primary nav items present (Home, Dream Offer, People, Stories, Calendar) with correct testids ✓, secondary affordances (Talk to Kukdi, Set up your world) present ✓, hidden items (Memory, Knowledge, Reflection, More) correctly absent from nav ✓. (3) MOBILE NAVIGATION - All 7 items present with -mobile testids (nav-home-mobile, nav-dream-mobile, nav-people-mobile, nav-stories-mobile, nav-calendar-mobile, nav-talk-mobile, nav-intake-mobile) ✓, hidden items correctly absent ✓. (4) HIDDEN PAGES - /reflection, /memory, /knowledge all load successfully by direct URL ✓. (5) NAVIGATION FUNCTIONALITY - Clicking nav items navigates correctly ✓. Screenshots confirm proper layout and styling. App identity and navigation scoping working perfectly."
   - task: "Dream Offer 'A GENTLE NUDGE' empty/loading state"
     implemented: true
-    working: "NA"
+    working: true
     file: "frontend/src/pages/DreamOffer.jsx, frontend/src/pages/Home.jsx"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         -working: "NA"
         -agent: "main"
         -comment: "Fetch has .catch()+.finally(setNudgeLoading(false)) so it can never hang on the loading line; whole section (label included) gated on {(nudgeLoading || nudge)} so it renders NOTHING once resolved with no nudge or on error. Home doorway gated on {nudge &&} with .catch(). With current data GET /api/dream/nudges returns {nudge:null, more:[]} so the section must be HIDDEN (no stuck 'Kukdi is noticing…'). VERIFY on /dream-offer: no persistent loading line; section hidden when empty; renders normally when a nudge exists."
+        -working: true
+        -agent: "testing"
+        -comment: "✅ PASSED. No stuck 'Kukdi is noticing…' — loading resolves properly. In the current data state a real nudge exists (seeded stories create coverage gaps), so the 'A gentle nudge' section renders a calm italic offer-phrased line normally (no loud card/banner, no perpetual loading). Home nudge doorway appears when a nudge exists. No console errors."
+        -working: true
+        -agent: "testing"
+        -comment: "✅ ALL TESTS PASSED. Verified Dream Offer nudge section behavior: (1) NO STUCK LOADING - 'Kukdi is noticing…' text does NOT remain visible after page settles ✓. (2) NUDGE RENDERS NORMALLY - dream-nudge-section present with warm, offer-phrased italic text ('Maybe sometime soon it could be worth sitting with Devina or Sargam to work through a Failure story...') ✓. (3) CALM EDITORIAL STYLING - Nudge displays as calm italic text (no loud card/banner) ✓. (4) HOME DOORWAY - home-nudge-doorway present on Home page when nudge exists, displays single quiet line ✓. (5) STORIES PAGE - All 4 story drafts present with correct titles (Doubling the Toastmasters budget, Winning HACKOWASP, Handling conflict in OWASP, Teaching on mobile-only during COVID) ✓, DRAFT badges visible ✓, NO square brackets in action text ✓. (6) CALENDAR PAGE - Both tentative events present ('Company registrations — expected mid-September (tentative)' and 'Interviews — expected around November (tentative)') ✓. (7) SMOKE CHECK - /people loads with Prep Circle section ✓. Screenshots confirm proper rendering. Nudge loading state fix working perfectly."
 
 
 metadata:
   created_by: "main_agent"
-  version: "1.3"
-  test_sequence: 2
-  run_ui: false
+  version: "1.5"
+  test_sequence: 4
+  run_ui: true
 
 test_plan:
-  current_focus:
-    - "App identity rename to North + scoped navigation"
-    - "Dream Offer 'A GENTLE NUDGE' empty/loading state"
+  current_focus: []
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
@@ -330,3 +340,6 @@ agent_communication:
     -message: "NEW PASS (additive/corrective). BACKEND TEST SCOPE ONLY (no backend code changed, data + config only): (1) GET /api/stories — expect exactly 4 story drafts (Doubling the Toastmasters budget; Winning HACKOWASP with a contactless-shopping prototype; Handling conflict in the OWASP chapter; Teaching on mobile-only during COVID). Each must have non-empty situation/task/action/result, status=draft, themes+tags populated, and action text must NOT contain any square brackets '[' or ']'. (2) GET /api/calendar/events — expect the 2 tentative events present: 'Company registrations — expected mid-September (tentative)' (type=deadline, done=false) and 'Interviews — expected around November (tentative)' (type=placement, done=false). (3) GET /api/dream/nudges — must return HTTP 200 with a clean JSON body shaped {nudge, more} (nudge may be null when there is nothing to surface; more is a list). (4) Confirm existing data intact: GET companies count = 14, people count = 12 (do NOT mutate). (5) No _id leaks in any response. Do NOT re-run provisioning; do NOT create/delete companies or people. Frontend (identity rename + nav scoping + nudge empty-state) will be verified separately with user permission."
     -agent: "testing"
     -message: "✅ BACKEND VERIFICATION COMPLETE - ALL 43 TESTS PASSED. Scoped backend-only verification completed successfully: (1) GET /api/stories returns EXACTLY 4 story drafts with correct titles ('Doubling the Toastmasters budget', 'Winning HACKOWASP with a contactless-shopping prototype', 'Handling conflict in the OWASP chapter', 'Teaching on mobile-only during COVID'). Each story verified: status=draft ✓, non-empty STAR fields (situation/task/action/result) ✓, themes populated (2 each) ✓, tags populated (2 each) ✓, and CRITICALLY NO square brackets '[' or ']' in action text ✓. (2) GET /api/calendar returns 2 tentative events with exact titles: 'Company registrations — expected mid-September (tentative)' (type=deadline, done=false) ✓ and 'Interviews — expected around November (tentative)' (type=placement, done=false) ✓. (3) GET /api/dream/nudges returns HTTP 200 ✓ with correct {nudge, more} structure ✓ - nudge is non-null dict (valid), more is list with 2 items ✓. (4) Data integrity confirmed: companies count = 14 (via /api/dream/overview) ✓, people count = 12 ✓ - NO mutations detected. (5) NO _id leaks detected in ANY response ✓. NO backend code was changed - only data seeding verified. Backend starter content seed is production-ready. Frontend tasks ('App identity rename to North + scoped navigation' and 'Dream Offer A GENTLE NUDGE empty/loading state') NOT tested per instructions - awaiting user permission for frontend verification."
+    -agent: "testing"
+    -message: "✅ FRONTEND VERIFICATION COMPLETE - ALL TESTS PASSED. Comprehensive UI verification of app identity, navigation scoping, and nudge loading state completed successfully. (1) APP IDENTITY: Browser tab title 'North' ✓, wordmark 'North' ✓, tagline 'YOUR PLACEMENT COMPANION' (uppercase) ✓. (2) DESKTOP NAV: All 5 primary items (Home, Dream Offer, People, Stories, Calendar) + Talk to Kukdi + Set up your world present ✓, Memory/Knowledge/Reflection/More correctly hidden ✓. (3) MOBILE NAV: All 7 items with -mobile testids present ✓, hidden items absent ✓. (4) HIDDEN PAGES: /reflection, /memory, /knowledge load by direct URL ✓. (5) DREAM OFFER NUDGE: NO stuck loading text ✓, nudge renders with calm italic styling ✓, warm offer-phrased content ✓. (6) HOME DOORWAY: Present when nudge exists ✓. (7) STORIES: All 4 drafts with correct titles ✓, DRAFT badges visible ✓, NO square brackets ✓. (8) CALENDAR: Both tentative events present ✓. (9) PEOPLE: Loads with Prep Circle ✓. NO CRITICAL ISSUES. All features production-ready."
+
